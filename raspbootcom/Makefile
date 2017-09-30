@@ -16,10 +16,12 @@
 #  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 # source files
-SOURCES  := $(wildcard *.cc)
+SOURCES_CC  := $(wildcard *.cc)
+SOURCES_C   := ../miniz/miniz.c ../miniz/miniz_tinfl.c ../miniz/miniz_tdef.c
 
 # object files
-OBJS        += $(patsubst %.cc,%.o,$(SOURCES))
+OBJS        += $(patsubst %.cc,%.o,$(SOURCES_CC))
+OBJS        += miniz.o tinfl.o tdef.o
 
 # Build flags
 CXXFLAGS    := -O2 -W -Wall -g
@@ -27,7 +29,7 @@ CXXFLAGS    := -O2 -W -Wall -g
 # build rules
 all: raspbootcom
 
-raspbootcom: raspbootcom.o
+raspbootcom: raspbootcom.o miniz.o tinfl.o tdef.o
 	$(CXX) -o $@ $+
 
 clean:
@@ -40,3 +42,11 @@ dist-clean: clean
 # C++.
 %.o: %.cc Makefile
 	g++ $(CXXFLAGS) -c $< -o $@
+
+# C
+%.o: ../miniz/miniz_%.c Makefile
+	gcc $(CXXFLAGS) -c $< -o $@
+
+
+%.o: ../miniz/%.c Makefile
+	$(ARMGNU)-gcc $(CXXFLAGS) -c $< -o $@

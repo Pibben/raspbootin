@@ -30,6 +30,10 @@
 #include <stdint.h>
 #include <termios.h>
 
+#include "../miniz/miniz.h"
+#include "../miniz/miniz_common.h"
+#include "../miniz/miniz_tinfl.h"
+
 #define BUF_SIZE 65536
 
 struct termios old_tio, new_tio;
@@ -121,12 +125,78 @@ void send_kernel(int fd, const char *file) {
         fprintf(stderr, "kernel too big\n");
         do_exit(fd, EXIT_FAILURE);
     }
-    size = htole32(off);
+
     lseek(file_fd, 0L, SEEK_SET);
 
-    fprintf(stderr, "### sending kernel %s [%zu byte]\n", file, (size_t)off);
+    unsigned char* kernel = (unsigned char*)malloc(off);
+    if (!kernel) {
+        do_exit(fd, EXIT_FAILURE);
+    }
+
+    size_t compressedSize = compressBound(off);
+
+    unsigned char* compressed = (unsigned char*)malloc(compressedSize);
+    if (!kernel) {
+        do_exit(fd, EXIT_FAILURE);
+    }
+
+    pos = 0;
+    while(!done) {
+        char buf[BUF_SIZE];
+        ssize_t len = read(file_fd, buf, BUF_SIZE);
+        switch (len) {
+            case -1:
+                perror("read()");
+                do_exit(fd, EXIT_FAILURE);
+            case 0:
+                done = true;
+            default:
+                memcpy(kernel+pos, buf, len);
+        }
+        pos += len;
+    }
+
+    int cmp_status = compress(compressed, &compressedSize, kernel, off);
+    if (cmp_status != Z_OK) {
+        perror("compress()");
+        do_exit(fd, EXIT_FAILURE);
+    }
+
+    fprintf(stderr, "### compressed kernel %zu -> %zu\n", off, compressedSize);
+
+    unsigned long crc = crc32(0, kernel, off);
+    fprintf(stderr, "### CRC: 0x%08lx\n", crc);
+
+//#define VERIFY_COMPRESSION 1
+#ifdef VERIFY_COMPRESSION
+    size_t uncompressedSize = off;
+    unsigned char* uncompressed = (unsigned char*)malloc(uncompressedSize);
+    if (!uncompressed) {
+        do_exit(fd, EXIT_FAILURE);
+    }
+
+    cmp_status = uncompress(uncompressed, &uncompressedSize, compressed, compressedSize);
+    if (cmp_status != Z_OK) {
+        perror("uncompress()");
+        do_exit(fd, EXIT_FAILURE);
+    }
+
+    if (uncompressedSize != (size_t)off || memcmp(kernel, uncompressed, uncompressedSize)) {
+        perror("uncompress()");
+        do_exit(fd, EXIT_FAILURE);
+    }
+
+    fprintf(stderr, "### compression verified OK\n");
+
+    free(uncompressed);
+#endif
+
+    free(kernel);
+
+    fprintf(stderr, "### sending kernel %s [%zu byte]\n", file, compressedSize);
 
     // send kernel size to RPi
+    size = htole32(compressedSize);
     p = (char*)&size;
     pos = 0;
     while(pos < 4) {
@@ -154,28 +224,16 @@ void send_kernel(int fd, const char *file) {
         do_exit(fd, EXIT_FAILURE);
     }
 
-    while(!done) {
-        char buf[BUF_SIZE];
-        ssize_t pos = 0;
-        ssize_t len = read(file_fd, buf, BUF_SIZE);
-        switch(len) {
-        case -1:
-            perror("read()");
+    pos = 0;
+    while(pos < (ssize_t)compressedSize) {
+        ssize_t len = write(fd, &compressed[pos], compressedSize-pos);
+        if (len == -1) {
+            perror("write()");
             do_exit(fd, EXIT_FAILURE);
-        case 0:
-            done = true;
         }
-        while(len > 0) {
-            ssize_t len2 = write(fd, &buf[pos], len);
-            if (len2 == -1) {
-                perror("write()");
-                do_exit(fd, EXIT_FAILURE);
-            }
-            len -= len2;
-            pos += len2;
-        }
+        pos += len;
     }
-    
+
     // Set fd non-blocking
     if (fcntl(fd, F_SETFL, O_NONBLOCK) == -1) {
         perror("fcntl()");
@@ -183,6 +241,8 @@ void send_kernel(int fd, const char *file) {
     }
 
     fprintf(stderr, "### finished sending\n");
+
+    free(compressed);
 
     return;
 }

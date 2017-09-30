@@ -22,10 +22,12 @@ ARMGNU ?= $(PREFIX)/bin/arm-none-eabi
 # source files
 SOURCES_ASM := $(wildcard *.S)
 SOURCES_CC  := $(wildcard *.cc)
+SOURCES_C   := ../miniz/miniz.c ../miniz/miniz_tinfl.c ../miniz/miniz_tdef.c
 
 # object files
 OBJS        := $(patsubst %.S,%.o,$(SOURCES_ASM))
 OBJS        += $(patsubst %.cc,%.o,$(SOURCES_CC))
+OBJS        += miniz.o tinfl.o tdef.o
 
 # Build flags
 DEPENDFLAGS := -MD -MP
@@ -72,6 +74,13 @@ dist-clean: clean
 # C++.
 %.o: %.cc Makefile
 	$(ARMGNU)-g++ $(CXXFLAGS) -c $< -o $@
+
+# C.
+%.o: ../miniz/miniz_%.c Makefile
+	$(ARMGNU)-gcc $(CXXFLAGS) -c $< -o $@
+
+%.o: ../miniz/%.c Makefile
+	$(ARMGNU)-gcc $(CXXFLAGS) -c $< -o $@
 
 # AS.
 %.o: %.S Makefile
