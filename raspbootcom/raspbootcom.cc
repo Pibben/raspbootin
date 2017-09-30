@@ -156,7 +156,7 @@ void send_kernel(int fd, const char *file) {
         pos += len;
     }
 
-    int cmp_status = compress(compressed, &compressedSize, kernel, off);
+    int cmp_status = compress2(compressed, &compressedSize, kernel, off, MZ_UBER_COMPRESSION);
     if (cmp_status != Z_OK) {
         perror("compress()");
         do_exit(fd, EXIT_FAILURE);
