@@ -20,19 +20,19 @@
 
 void Header::print_all() const {
     for(const Header *current = this; current; current = current->next()) {
-	kprintf("[%p] ", current);
-	switch(current->tag) {
-	case NONE: kprintf("NONE\n"); break;
-	case CORE: ((const Core*)current)->print(); break;
-	case MEM: ((const Mem*)current)->print(); break;
-	case VIDEOTEXT: ((const Videotext*)current)->print(); break;
-	case RAMDISK: ((const Ramdisk*)current)->print(); break;
-	case INITRD2: ((const Initrd2*)current)->print(); break;
-	case SERIAL: ((const Serial*)current)->print(); break;
-	case REVISION: ((const Revision*)current)->print(); break;
-	case VIDEOLFB: ((const VideoLFB*)current)->print(); break;
-	case CMDLINE: ((const Cmdline*)current)->print(); break;
-	}
+        kprintf("[%p] ", current);
+        switch(current->tag) {
+        case NONE: kprintf("NONE\n"); break;
+        case CORE: ((const Core*)current)->print(); break;
+        case MEM: ((const Mem*)current)->print(); break;
+        case VIDEOTEXT: ((const Videotext*)current)->print(); break;
+        case RAMDISK: ((const Ramdisk*)current)->print(); break;
+        case INITRD2: ((const Initrd2*)current)->print(); break;
+        case SERIAL: ((const Serial*)current)->print(); break;
+        case REVISION: ((const Revision*)current)->print(); break;
+        case VIDEOLFB: ((const VideoLFB*)current)->print(); break;
+        case CMDLINE: ((const Cmdline*)current)->print(); break;
+        }
     }
 }
 

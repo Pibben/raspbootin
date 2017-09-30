@@ -46,17 +46,17 @@ const ArchInfo *arch_info;
 
 const char *find(const char *str, const char *token) {
     while(*str) {
-	const char *p = str;
-	const char *q = token;
-	// as long as str matches token
-	while(*p && *p == *q) {
-	    // keep comparing
-	    ++p;
-	    ++q;
-	}
-	if (*q == 0) return str; // found token
-	// token not found, try again
-	++str;
+        const char *p = str;
+        const char *q = token;
+        // as long as str matches token
+        while(*p && *p == *q) {
+            // keep comparing
+            ++p;
+            ++q;
+        }
+        if (*q == 0) return str; // found token
+        // token not found, try again
+        ++str;
     }
 
     // end of string, nothing found
@@ -70,10 +70,10 @@ void kernel_main(uint32_t r0, uint32_t r1, const Header *atags) {
     arch_info = &arch_infos[ArchInfo::RPI];
     const Cmdline *cmdline = atags->find<Cmdline>();
     if (find(cmdline->cmdline, "bcm2708.disk_led_gpio=47")) {
-	arch_info = &arch_infos[ArchInfo::RPIplus];
+        arch_info = &arch_infos[ArchInfo::RPIplus];
     }
     if (find(cmdline->cmdline, "bcm2709.disk_led_gpio=47")) {
-	arch_info = &arch_infos[ArchInfo::RPI2];
+        arch_info = &arch_infos[ArchInfo::RPI2];
     }
     
     UART::init();
@@ -95,16 +95,16 @@ again:
     size |= UART::getc() << 24;
 
     if (0x8000 + size > LOADER_ADDR) {
-	UART::puts("SE");
-	goto again;
+        UART::puts("SE");
+        goto again;
     } else {
-	UART::puts("OK");
+        UART::puts("OK");
     }
     
     // get kernel
     uint8_t *kernel = (uint8_t*)0x8000;
     while(size-- > 0) {
-	*kernel++ = UART::getc();
+        *kernel++ = UART::getc();
     }
 
     // Kernel is loaded at 0x8000, call it via function pointer

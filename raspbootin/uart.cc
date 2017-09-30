@@ -27,39 +27,39 @@
 
 namespace UART {
     enum {
-	// The GPIO registers base address.
-	GPIO_OFFSET = 0x00200000,
+        // The GPIO registers base address.
+        GPIO_OFFSET = 0x00200000,
 
-	// The offsets for reach register.
+        // The offsets for reach register.
 
-	// Controls actuation of pull up/down to ALL GPIO pins.
-	GPPUD = (GPIO_OFFSET + 0x94),
+        // Controls actuation of pull up/down to ALL GPIO pins.
+        GPPUD = (GPIO_OFFSET + 0x94),
 
-	// Controls actuation of pull up/down for specific GPIO pin.
-	GPPUDCLK0 = (GPIO_OFFSET + 0x98),
+        // Controls actuation of pull up/down for specific GPIO pin.
+        GPPUDCLK0 = (GPIO_OFFSET + 0x98),
 
-	// The base address for UART.
-	UART0_OFFSET = GPIO_OFFSET + 0x00001000,
+        // The base address for UART.
+        UART0_OFFSET = GPIO_OFFSET + 0x00001000,
 
-	// The offsets for reach register for the UART.
-	UART0_DR     = (UART0_OFFSET + 0x00),
-	UART0_RSRECR = (UART0_OFFSET + 0x04),
-	UART0_FR     = (UART0_OFFSET + 0x18),
-	UART0_ILPR   = (UART0_OFFSET + 0x20),
-	UART0_IBRD   = (UART0_OFFSET + 0x24),
-	UART0_FBRD   = (UART0_OFFSET + 0x28),
-	UART0_LCRH   = (UART0_OFFSET + 0x2C),
-	UART0_CR     = (UART0_OFFSET + 0x30),
-	UART0_IFLS   = (UART0_OFFSET + 0x34),
-	UART0_IMSC   = (UART0_OFFSET + 0x38),
-	UART0_RIS    = (UART0_OFFSET + 0x3C),
-	UART0_MIS    = (UART0_OFFSET + 0x40),
-	UART0_ICR    = (UART0_OFFSET + 0x44),
-	UART0_DMACR  = (UART0_OFFSET + 0x48),
-	UART0_ITCR   = (UART0_OFFSET + 0x80),
-	UART0_ITIP   = (UART0_OFFSET + 0x84),
-	UART0_ITOP   = (UART0_OFFSET + 0x88),
-	UART0_TDR    = (UART0_OFFSET + 0x8C),
+        // The offsets for reach register for the UART.
+        UART0_DR     = (UART0_OFFSET + 0x00),
+        UART0_RSRECR = (UART0_OFFSET + 0x04),
+        UART0_FR     = (UART0_OFFSET + 0x18),
+        UART0_ILPR   = (UART0_OFFSET + 0x20),
+        UART0_IBRD   = (UART0_OFFSET + 0x24),
+        UART0_FBRD   = (UART0_OFFSET + 0x28),
+        UART0_LCRH   = (UART0_OFFSET + 0x2C),
+        UART0_CR     = (UART0_OFFSET + 0x30),
+        UART0_IFLS   = (UART0_OFFSET + 0x34),
+        UART0_IMSC   = (UART0_OFFSET + 0x38),
+        UART0_RIS    = (UART0_OFFSET + 0x3C),
+        UART0_MIS    = (UART0_OFFSET + 0x40),
+        UART0_ICR    = (UART0_OFFSET + 0x44),
+        UART0_DMACR  = (UART0_OFFSET + 0x48),
+        UART0_ITCR   = (UART0_OFFSET + 0x80),
+        UART0_ITIP   = (UART0_OFFSET + 0x84),
+        UART0_ITOP   = (UART0_OFFSET + 0x88),
+        UART0_TDR    = (UART0_OFFSET + 0x8C),
     };
 
     /*
@@ -70,52 +70,52 @@ namespace UART {
      * wont optimize away.
      */
     void delay(int32_t count) {
-	asm volatile("1: subs %[count], %[count], #1; bne 1b"
-		     : : [count]"r"(count));
+        asm volatile("1: subs %[count], %[count], #1; bne 1b"
+                     : : [count]"r"(count));
     }
     
     /*
      * Initialize UART0.
      */
     void init(void) {
-	// Disable UART0.
-	MMIO::write(UART0_CR, 0x00000000);
-	// Setup the GPIO pin 14 && 15.
+        // Disable UART0.
+        MMIO::write(UART0_CR, 0x00000000);
+        // Setup the GPIO pin 14 && 15.
     
-	// Disable pull up/down for all GPIO pins & delay for 150 cycles.
-	MMIO::write(GPPUD, 0x00000000);
-	delay(150);
+        // Disable pull up/down for all GPIO pins & delay for 150 cycles.
+        MMIO::write(GPPUD, 0x00000000);
+        delay(150);
 
-	// Disable pull up/down for pin 14,15 & delay for 150 cycles.
-	MMIO::write(GPPUDCLK0, (1 << 14) | (1 << 15));
-	delay(150);
+        // Disable pull up/down for pin 14,15 & delay for 150 cycles.
+        MMIO::write(GPPUDCLK0, (1 << 14) | (1 << 15));
+        delay(150);
 
-	// Write 0 to GPPUDCLK0 to make it take effect.
-	MMIO::write(GPPUDCLK0, 0x00000000);
+        // Write 0 to GPPUDCLK0 to make it take effect.
+        MMIO::write(GPPUDCLK0, 0x00000000);
     
-	// Clear pending interrupts.
-	MMIO::write(UART0_ICR, 0x7FF);
+        // Clear pending interrupts.
+        MMIO::write(UART0_ICR, 0x7FF);
 
-	// Set integer & fractional part of baud rate.
-	// Divider = UART_CLOCK/(16 * Baud)
-	// Fraction part register = (Fractional part * 64) + 0.5
-	// UART_CLOCK = 3000000; Baud = 115200.
+        // Set integer & fractional part of baud rate.
+        // Divider = UART_CLOCK/(16 * Baud)
+        // Fraction part register = (Fractional part * 64) + 0.5
+        // UART_CLOCK = 3000000; Baud = 115200.
 
-	// Divider = 3000000/(16 * 115200) = 1.627 = ~1.
-	// Fractional part register = (.627 * 64) + 0.5 = 40.6 = ~40.
-	MMIO::write(UART0_IBRD, 1);
-	MMIO::write(UART0_FBRD, 40);
+        // Divider = 3000000/(16 * 115200) = 1.627 = ~1.
+        // Fractional part register = (.627 * 64) + 0.5 = 40.6 = ~40.
+        MMIO::write(UART0_IBRD, 1);
+        MMIO::write(UART0_FBRD, 40);
 
-	// Enable FIFO & 8 bit data transmissio (1 stop bit, no parity).
-	MMIO::write(UART0_LCRH, (1 << 4) | (1 << 5) | (1 << 6));
+        // Enable FIFO & 8 bit data transmissio (1 stop bit, no parity).
+        MMIO::write(UART0_LCRH, (1 << 4) | (1 << 5) | (1 << 6));
 
-	// Mask all interrupts.
-	MMIO::write(UART0_IMSC, (1 << 1) | (1 << 4) | (1 << 5) |
-		    (1 << 6) | (1 << 7) | (1 << 8) |
-		    (1 << 9) | (1 << 10));
+        // Mask all interrupts.
+        MMIO::write(UART0_IMSC, (1 << 1) | (1 << 4) | (1 << 5) |
+                    (1 << 6) | (1 << 7) | (1 << 8) |
+                    (1 << 9) | (1 << 10));
 
-	// Enable UART0, receive & transfer part of UART.
-	MMIO::write(UART0_CR, (1 << 0) | (1 << 8) | (1 << 9));
+        // Enable UART0, receive & transfer part of UART.
+        MMIO::write(UART0_CR, (1 << 0) | (1 << 8) | (1 << 9));
     }
 
     /*
@@ -123,13 +123,13 @@ namespace UART {
      * uint8_t Byte: byte to send.
      */
     void putc(uint8_t byte) {
-	// wait for UART to become ready to transmit
-	while(true) {
-	    if (!(MMIO::read(UART0_FR) & (1 << 5))) {
-		break;
-	    }
-	}
-	MMIO::write(UART0_DR, byte);
+        // wait for UART to become ready to transmit
+        while(true) {
+            if (!(MMIO::read(UART0_FR) & (1 << 5))) {
+                break;
+            }
+        }
+        MMIO::write(UART0_DR, byte);
     }
 
     /*
@@ -139,13 +139,13 @@ namespace UART {
      * uint8_t: byte received.
      */
     uint8_t getc(void) {
-	// wait for UART to have recieved something
-	while(true) {
-	    if (!(MMIO::read(UART0_FR) & (1 << 4))) {
-		break;
-	    }
-	}
-	return MMIO::read(UART0_DR);
+        // wait for UART to have recieved something
+        while(true) {
+            if (!(MMIO::read(UART0_FR) & (1 << 4))) {
+                break;
+            }
+        }
+        return MMIO::read(UART0_DR);
     }
 
     /*
@@ -153,8 +153,8 @@ namespace UART {
      * const char *str: 0-terminated string
      */
     void puts(const char *str) {
-	while(*str) {
-	    UART::putc(*str++);
-	}
+        while(*str) {
+            UART::putc(*str++);
+        }
     }
 }
