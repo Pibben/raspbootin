@@ -50,6 +50,7 @@ WARNFLAGS   += -Wwrite-strings -Wdisabled-optimization -Wpointer-arith
 WARNFLAGS   += -Werror
 ASFLAGS     := $(INCLUDES) $(DEPENDFLAGS) -D__ASSEMBLY__
 CXXFLAGS    := $(INCLUDES) $(DEPENDFLAGS) $(BASEFLAGS) $(WARNFLAGS)
+CFLAGS      := $(CXXFLAGS)
 CXXFLAGS    += -fno-exceptions -std=gnu++11
 LDFLAGS     := $(BASEFLAGS)
 
@@ -77,10 +78,10 @@ dist-clean: clean
 
 # C.
 %.o: ../miniz/miniz_%.c Makefile
-	$(ARMGNU)-gcc $(CXXFLAGS) -c $< -o $@
+	$(ARMGNU)-gcc $(CFLAGS) -c $< -o $@
 
 %.o: ../miniz/%.c Makefile
-	$(ARMGNU)-gcc $(CXXFLAGS) -c $< -o $@
+	$(ARMGNU)-gcc $(CFLAGS) -c $< -o $@
 
 # AS.
 %.o: %.S Makefile
